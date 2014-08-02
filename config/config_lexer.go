@@ -3,22 +3,22 @@ package config
 import (
 	"unicode"
 
-	. "github.com/eczarny/lexer"
+	"github.com/eczarny/lexer"
 )
 
 const (
-	TokenText TokenType = iota
+	TokenText lexer.TokenType = iota
 	TokenVariable
 	TokenAssignment
 	TokenComma
 	TokenEOF
 )
 
-func NewConfigLexer(input string) *Lexer {
-	return NewLexer(input, initialState)
+func NewConfigLexer(input string) *lexer.Lexer {
+	return lexer.NewLexer(input, initialState)
 }
 
-func initialState(l *Lexer) StateFunction {
+func initialState(l *lexer.Lexer) lexer.StateFunc {
 	r := l.IgnoreUpTo(func(r rune) bool {
 		return variable(r) || assignment(r) || comma(r) || nonWhitespace(r)
 	})
@@ -29,14 +29,14 @@ func initialState(l *Lexer) StateFunction {
 		return assignmentState
 	case comma(r):
 		return commaState
-	case nonWhitespace(r) && r != EOF:
+	case nonWhitespace(r) && r != lexer.EOF:
 		return textState
 	}
 	l.Emit(TokenEOF)
 	return nil
 }
 
-func textState(l *Lexer) StateFunction {
+func textState(l *lexer.Lexer) lexer.StateFunc {
 	l.NextUpTo(func(r rune) bool {
 		return variable(r) || assignment(r) || comma(r) || whitespace(r)
 	})
@@ -44,20 +44,20 @@ func textState(l *Lexer) StateFunction {
 	return initialState
 }
 
-func variableState(l *Lexer) StateFunction {
+func variableState(l *lexer.Lexer) lexer.StateFunc {
 	l.Ignore()
 	l.NextUpTo(nonAlphanumeric)
 	l.Emit(TokenVariable)
 	return initialState
 }
 
-func assignmentState(l *Lexer) StateFunction {
+func assignmentState(l *lexer.Lexer) lexer.StateFunc {
 	l.Ignore()
 	l.Emit(TokenAssignment)
 	return initialState
 }
 
-func commaState(l *Lexer) StateFunction {
+func commaState(l *lexer.Lexer) lexer.StateFunc {
 	l.Ignore()
 	l.Emit(TokenComma)
 	return initialState
