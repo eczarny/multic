@@ -8,19 +8,25 @@ import (
 )
 
 type Config struct {
+	path string
 	directoryGroups map[string][]string
 }
 
-func NewConfig(filename string) *Config {
-	file, err := os.Open(filename)
+func NewConfig(path string) *Config {
+	file, err := os.Open(path)
 	if err != nil {
 		return nil
 	}
 	defer file.Close()
 	c := new(Config)
 	lines, _ := readLines(file)
+	c.path = path
 	c.directoryGroups = ParseLines(lines)
 	return c
+}
+
+func (c *Config) GetPath() string {
+	return c.path
 }
 
 func (c *Config) GetDirectoryGroup(directoryGroupName string) []string {
