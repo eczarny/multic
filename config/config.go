@@ -2,15 +2,19 @@ package config
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 )
 
 type Config struct {
-	path            string
-	directoryGroups map[string][]string
+	path                string
+	directoryGroupNames []string
+	directoryGroups     map[string][]string
 }
+
+type StepFunc func(string, []string)
 
 func NewConfig(path string) *Config {
 	f, err := os.Open(path)
@@ -19,9 +23,11 @@ func NewConfig(path string) *Config {
 	}
 	defer f.Close()
 	l, _ := readLines(f)
+	k, d := ParseLines(l)
 	c := &Config{
-		path:            path,
-		directoryGroups: ParseLines(l),
+		path:                path,
+		directoryGroupNames: k,
+		directoryGroups:     d,
 	}
 	return c
 }
@@ -30,12 +36,21 @@ func (c *Config) GetPath() string {
 	return c.path
 }
 
-func (c *Config) GetDirectoryGroup(directoryGroupName string) []string {
+func (c *Config) GetDirectoryGroup(directoryGroupName string) ([]string, error) {
 	d, ok := c.directoryGroups[directoryGroupName]
 	if !ok {
-		panic(fmt.Sprintf("Directory group %s does not exists.", directoryGroupName))
+		return nil, errors.New(fmt.Sprintf("Directory group '%s' does not exists.", directoryGroupName))
 	}
-	return d
+	return d, nil
+}
+
+func (c *Config) WalkDirectoryGroups(step StepFunc) {
+	for _, n := range c.directoryGroupNames {
+		g, err := c.GetDirectoryGroup(n)
+		if err == nil {
+			step(n, g)
+		}
+	}
 }
 
 func (c *Config) DirectoryGroups() map[string][]string {

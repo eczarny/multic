@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/user"
 	"strings"
@@ -26,17 +25,19 @@ Options:
 `
 
 func printDirectoryGroups(config *config.Config) {
-	for n, d := range config.DirectoryGroups() {
-		printDirectoryGroup(n, d)
-	}
+	config.WalkDirectoryGroups(func(n string, g []string) {
+		printDirectoryGroup(n, g)
+	})
 }
 
 func printDirectoryGroup(directoryGroupName string, directoryGroup []string) {
-	terminal.Stdout.Colorf("@{.}Directory group: ").Reset().Color("y").Print(directoryGroupName).Reset().Nl()
+	o := terminal.Stdout
+	o.Colorf("@{.}Directory group: ").Reset()
+	o.Color(".y").Print(directoryGroupName).Reset().Nl()
 	for _, d := range directoryGroup {
-		fmt.Printf("    %s\n", d)
+		o.Print(d).Nl()
 	}
-	fmt.Println()
+	o.Nl()
 }
 
 func loadConfig(path string) *config.Config {
@@ -73,15 +74,21 @@ func main() {
 		},
 	}
 	app.Action = func(c *cli.Context) {
+		o := terminal.Stdout
 		config := loadConfig(c.String("configuration"))
 		if c.IsSet("list") {
 			printDirectoryGroups(config)
 		} else if len(c.Args()) == 0 {
 			cli.ShowAppHelp(c)
 		} else {
-			directoryGroupName := c.String("group")
-			terminal.Stdout.Colorf("@{g}Running command: ").Color("_").Print(c.Args()).Reset().Nl().Nl()
-			printDirectoryGroup(directoryGroupName, config.GetDirectoryGroup(directoryGroupName))
+			n := c.String("group")
+			g, err := config.GetDirectoryGroup(n)
+			if err == nil {
+				o.Colorf("@{g}Running command: ").Color("_").Print(c.Args()).Reset().Nl().Nl()
+				printDirectoryGroup(n, g)
+			} else {
+				o.Color("r").Print(err).Reset().Nl()
+			}
 		}
 	}
 	app.Run(os.Args)

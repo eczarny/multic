@@ -8,19 +8,21 @@ import (
 )
 
 type ConfigParser struct {
+	keys         []string
 	config       map[string][]string
 	lexer        *lexer.Lexer
 	currentToken lexer.Token
 }
 
-func ParseLines(lines []string) map[string][]string {
+func ParseLines(lines []string) ([]string, map[string][]string) {
 	p := new(ConfigParser)
+	p.keys = make([]string, 0)
 	p.config = make(map[string][]string)
 	for _, l := range lines {
 		p.lexer = NewConfigLexer(l)
 		p.parse()
 	}
-	return p.config
+	return p.keys, p.config
 }
 
 func (p *ConfigParser) parse() {
@@ -37,9 +39,10 @@ func (p *ConfigParser) parseDirectoryGroup(directoryGroupName string) {
 	p.expectToken(TokenAssignment, "Directory group assignment expected.")
 	d := p.parseDirectories(directoryGroupName)
 	if len(d) > 0 {
+		p.keys = append(p.keys, directoryGroupName)
 		p.config[directoryGroupName] = d
 	} else {
-		panic(fmt.Sprintf("Directory group %s cannot be empty.", directoryGroupName))
+		panic(fmt.Sprintf("Directory group '%s' cannot be empty.", directoryGroupName))
 	}
 }
 
@@ -97,7 +100,7 @@ Loop:
 	for {
 		switch p.currentToken.Type {
 		case TokenText:
-			r = append(r[:len(r)-1], r[len(r)-1] + p.tokenValue())
+			r = append(r[:len(r)-1], r[len(r)-1]+p.tokenValue())
 		case TokenVariable:
 			r = p.lookupDirectoryGroup(directoryGroupName, p.tokenValue())
 		case TokenEOF, TokenComma:
@@ -112,7 +115,7 @@ func (p *ConfigParser) lookupDirectoryGroup(directoryGroupName, referencedDirect
 	c := p.config[referencedDirectoryGroupName]
 	var r []string
 	if len(c) == 0 {
-		panic(fmt.Sprintf("%s references an invalid directory group: %s", directoryGroupName, referencedDirectoryGroupName))
+		panic(fmt.Sprintf("'%s' references an invalid directory group: %s", directoryGroupName, referencedDirectoryGroupName))
 	}
 	r = make([]string, len(c))
 	copy(r, c)
@@ -122,7 +125,7 @@ func (p *ConfigParser) lookupDirectoryGroup(directoryGroupName, referencedDirect
 func (p *ConfigParser) lookupSingleDirectoryGroup(directoryGroupName, referencedDirectoryGroupName string) string {
 	r := p.lookupDirectoryGroup(directoryGroupName, referencedDirectoryGroupName)
 	if len(r) != 1 {
-		panic(fmt.Sprintf("%s references an ambiguous directory group: %s", directoryGroupName, referencedDirectoryGroupName))
+		panic(fmt.Sprintf("'%s' references an ambiguous directory group: %s", directoryGroupName, referencedDirectoryGroupName))
 	}
 	return r[0]
 }
