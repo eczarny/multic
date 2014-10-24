@@ -87,7 +87,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "configuration, c",
-			Value: "~/.mc/config",
+			Value: "~/.multic/config",
 			Usage: "specify a configuration file",
 		},
 	}
