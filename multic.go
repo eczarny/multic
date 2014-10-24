@@ -56,7 +56,7 @@ func printDirectorySeparator(directory string) {
 	for i := 1; i < w-len(directory)-2; i++ {
 		o.Print("\u2500")
 	}
-	o.Nl()
+	o.Reset().Nl()
 }
 
 func main() {
