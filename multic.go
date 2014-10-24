@@ -73,7 +73,7 @@ func main() {
 		},
 	}
 	app.Action = func(c *cli.Context) {
-		config := loadConfig(c.String("~/.mc/config"))
+		config := loadConfig(c.String("configuration"))
 		if c.IsSet("list") {
 			printDirectoryGroups(config)
 		} else if len(c.Args()) == 0 {
