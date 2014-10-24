@@ -2,8 +2,8 @@ package main
 
 import (
 	"os"
-	"os/user"
-	"strings"
+	"syscall"
+	"unsafe"
 
 	"github.com/codegangsta/cli"
 	"github.com/eczarny/multic/config"
@@ -37,19 +37,26 @@ func printDirectoryGroup(directoryGroupName string, directoryGroup []string) {
 	for _, d := range directoryGroup {
 		o.Print(d).Nl()
 	}
-	o.Nl()
 }
 
-func loadConfig(path string) *config.Config {
-	return config.NewConfig(expandPath(path))
-}
-
-func expandPath(path string) string {
-	u, _ := user.Current()
-	if u != nil && path[:2] == "~/" {
-		path = strings.Replace(path, "~", u.HomeDir, 1)
+func terminalSize() (int, int, error) {
+	var d [4]uint16
+	_, _, err := syscall.Syscall6(syscall.SYS_IOCTL, uintptr(0),
+		uintptr(syscall.TIOCGWINSZ), uintptr(unsafe.Pointer(&d)), 0, 0, 0)
+	if err != 0 {
+		return -1, -1, err
 	}
-	return path
+	return int(d[1]), int(d[0]), nil
+}
+
+func printDirectorySeparator(directory string) {
+	o := terminal.Stdout
+	w, _, _ := terminalSize()
+	o.Color(".").Print("\u2514 ").Color(".g").Print(directory).Color(".").Print(" ")
+	for i := 1; i < w-len(directory)-2; i++ {
+		o.Print("\u2500")
+	}
+	o.Nl()
 }
 
 func main() {
@@ -74,8 +81,7 @@ func main() {
 		},
 	}
 	app.Action = func(c *cli.Context) {
-		o := terminal.Stdout
-		config := loadConfig(c.String("configuration"))
+		config := config.LoadConfig(c.String("configuration"))
 		if c.IsSet("list") {
 			printDirectoryGroups(config)
 		} else if len(c.Args()) == 0 {
@@ -84,10 +90,11 @@ func main() {
 			n := c.String("group")
 			g, err := config.GetDirectoryGroup(n)
 			if err == nil {
-				o.Colorf("@{g}Running command: ").Color("_").Print(c.Args()).Reset().Nl().Nl()
-				printDirectoryGroup(n, g)
+				for _, d := range g {
+					printDirectorySeparator(d)
+				}
 			} else {
-				o.Color("r").Print(err).Reset().Nl()
+				terminal.Stderr.Color("r").Print(err).Reset().Nl()
 			}
 		}
 	}

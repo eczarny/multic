@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/user"
+	"strings"
 )
 
 type Config struct {
@@ -16,8 +18,8 @@ type Config struct {
 
 type StepFunc func(string, []string)
 
-func NewConfig(path string) *Config {
-	f, err := os.Open(path)
+func LoadConfig(path string) *Config {
+	f, err := os.Open(expandPath(path))
 	if err != nil {
 		return nil
 	}
@@ -55,6 +57,14 @@ func (c *Config) WalkDirectoryGroups(step StepFunc) {
 
 func (c *Config) DirectoryGroups() map[string][]string {
 	return c.directoryGroups
+}
+
+func expandPath(path string) string {
+	u, _ := user.Current()
+	if u != nil && path[:2] == "~/" {
+		path = strings.Replace(path, "~", u.HomeDir, 1)
+	}
+	return path
 }
 
 func readLines(reader io.Reader) ([]string, error) {
