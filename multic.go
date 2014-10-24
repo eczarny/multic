@@ -1,7 +1,9 @@
 package main
 
 import (
+	"io"
 	"os"
+	"os/exec"
 	"syscall"
 	"unsafe"
 
@@ -59,6 +61,14 @@ func printDirectorySeparator(directory string) {
 	o.Reset().Nl()
 }
 
+func run(dir string, stdin io.Reader, stdout io.Writer, name string, args ...string) error {
+	cmd := exec.Command(name, args...)
+	cmd.Dir = dir
+	cmd.Stdin = stdin
+	cmd.Stdout = stdout
+	return cmd.Run()
+}
+
 func main() {
 	app := cli.NewApp()
 	cli.AppHelpTemplate = appHelpTemplate
@@ -81,16 +91,18 @@ func main() {
 		},
 	}
 	app.Action = func(c *cli.Context) {
+		args := c.Args()
 		config := config.LoadConfig(c.String("configuration"))
 		if c.IsSet("list") {
 			printDirectoryGroups(config)
-		} else if len(c.Args()) == 0 {
+		} else if len(args) == 0 {
 			cli.ShowAppHelp(c)
 		} else {
 			n := c.String("group")
 			g, err := config.GetDirectoryGroup(n)
 			if err == nil {
 				for _, d := range g {
+					run(d, os.Stdin, os.Stdout, args.First(), args.Tail()...)
 					printDirectorySeparator(d)
 				}
 			} else {
