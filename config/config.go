@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	path string
+	path            string
 	directoryGroups map[string][]string
 }
 
@@ -18,10 +18,11 @@ func NewConfig(path string) *Config {
 		return nil
 	}
 	defer file.Close()
-	c := new(Config)
 	lines, _ := readLines(file)
-	c.path = path
-	c.directoryGroups = ParseLines(lines)
+	c := &Config{
+		path:            path,
+		directoryGroups: ParseLines(lines),
+	}
 	return c
 }
 
@@ -32,7 +33,7 @@ func (c *Config) GetPath() string {
 func (c *Config) GetDirectoryGroup(directoryGroupName string) []string {
 	directoryGroup, ok := c.directoryGroups[directoryGroupName]
 	if !ok {
-		panic(fmt.Sprintf("Directory group '%s' does not exists.", directoryGroupName))
+		panic(fmt.Sprintf("Directory group %s does not exists.", directoryGroupName))
 	}
 	return directoryGroup
 }

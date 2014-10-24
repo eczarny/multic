@@ -66,4 +66,22 @@ var _ = Describe("ConfigParser", func() {
 		Expect(c["multic"]).Should(ConsistOf("~/Projects/Go/src/github.com/eczarny/multic"))
 		Expect(c["go_projects"]).Should(ConsistOf("~/Projects/Go/src/github.com/eczarny/lexer", "~/Projects/Go/src/github.com/eczarny/multic"))
 	})
+
+	It("should parse a directory group with variables referencing multiple directories", func() {
+		l := []string{
+			"PROJECTS=~/Projects",
+			"GO_SRC=$PROJECTS/Go/src/github.com/eczarny",
+			"lexer=$GO_SRC/lexer",
+			"multic=$GO_SRC/multic",
+			"go_projects=$lexer,$multic",
+			"default=$go_projects",
+		}
+		c := config.ParseLines(l)
+		Expect(c["PROJECTS"]).Should(ConsistOf("~/Projects"))
+		Expect(c["GO_SRC"]).Should(ConsistOf("~/Projects/Go/src/github.com/eczarny"))
+		Expect(c["lexer"]).Should(ConsistOf("~/Projects/Go/src/github.com/eczarny/lexer"))
+		Expect(c["multic"]).Should(ConsistOf("~/Projects/Go/src/github.com/eczarny/multic"))
+		Expect(c["go_projects"]).Should(ConsistOf("~/Projects/Go/src/github.com/eczarny/lexer", "~/Projects/Go/src/github.com/eczarny/multic"))
+		Expect(c["default"]).Should(ConsistOf("~/Projects/Go/src/github.com/eczarny/lexer", "~/Projects/Go/src/github.com/eczarny/multic"))
+	})
 })
