@@ -8,6 +8,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/eczarny/multic/config"
+	"github.com/wsxiaoys/terminal"
 )
 
 var appHelpTemplate = `{{.Name}}
@@ -25,14 +26,13 @@ Options:
 `
 
 func printDirectoryGroups(config *config.Config) {
-	fmt.Printf("Loaded directory group configuration: %s\n\n", config.GetPath())
 	for n, d := range config.DirectoryGroups() {
 		printDirectoryGroup(n, d)
 	}
 }
 
 func printDirectoryGroup(directoryGroupName string, directoryGroup []string) {
-	fmt.Printf("Directory group: %s\n", directoryGroupName)
+	terminal.Stdout.Colorf("@{.}Directory group: ").Reset().Color("y").Print(directoryGroupName).Reset().Nl()
 	for _, d := range directoryGroup {
 		fmt.Printf("    %s\n", d)
 	}
@@ -80,7 +80,7 @@ func main() {
 			cli.ShowAppHelp(c)
 		} else {
 			directoryGroupName := c.String("group")
-			fmt.Printf("Running command: %s\n\n", c.Args())
+			terminal.Stdout.Colorf("@{g}Running command: ").Color("_").Print(c.Args()).Reset().Nl().Nl()
 			printDirectoryGroup(directoryGroupName, config.GetDirectoryGroup(directoryGroupName))
 		}
 	}
