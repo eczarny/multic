@@ -13,15 +13,15 @@ type Config struct {
 }
 
 func NewConfig(path string) *Config {
-	file, err := os.Open(path)
+	f, err := os.Open(path)
 	if err != nil {
 		return nil
 	}
-	defer file.Close()
-	lines, _ := readLines(file)
+	defer f.Close()
+	l, _ := readLines(f)
 	c := &Config{
 		path:            path,
-		directoryGroups: ParseLines(lines),
+		directoryGroups: ParseLines(l),
 	}
 	return c
 }
@@ -31,11 +31,11 @@ func (c *Config) GetPath() string {
 }
 
 func (c *Config) GetDirectoryGroup(directoryGroupName string) []string {
-	directoryGroup, ok := c.directoryGroups[directoryGroupName]
+	d, ok := c.directoryGroups[directoryGroupName]
 	if !ok {
 		panic(fmt.Sprintf("Directory group %s does not exists.", directoryGroupName))
 	}
-	return directoryGroup
+	return d
 }
 
 func (c *Config) DirectoryGroups() map[string][]string {
@@ -43,10 +43,10 @@ func (c *Config) DirectoryGroups() map[string][]string {
 }
 
 func readLines(reader io.Reader) ([]string, error) {
-	var lines []string
-	scanner := bufio.NewScanner(reader)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+	var r []string
+	s := bufio.NewScanner(reader)
+	for s.Scan() {
+		r = append(r, s.Text())
 	}
-	return lines, scanner.Err()
+	return r, s.Err()
 }

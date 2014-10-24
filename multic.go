@@ -26,15 +26,15 @@ Options:
 
 func printDirectoryGroups(config *config.Config) {
 	fmt.Printf("Loaded directory group configuration: %s\n\n", config.GetPath())
-	for directoryGroupName, directoryGroup := range config.DirectoryGroups() {
-		printDirectoryGroup(directoryGroupName, directoryGroup)
+	for n, d := range config.DirectoryGroups() {
+		printDirectoryGroup(n, d)
 	}
 }
 
 func printDirectoryGroup(directoryGroupName string, directoryGroup []string) {
 	fmt.Printf("Directory group: %s\n", directoryGroupName)
-	for _, directory := range directoryGroup {
-		fmt.Printf("    %s\n", directory)
+	for _, d := range directoryGroup {
+		fmt.Printf("    %s\n", d)
 	}
 	fmt.Println()
 }
@@ -44,9 +44,9 @@ func loadConfig(path string) *config.Config {
 }
 
 func expandPath(path string) string {
-	user, _ := user.Current()
-	if user != nil && path[:2] == "~/" {
-		path = strings.Replace(path, "~", user.HomeDir, 1)
+	u, _ := user.Current()
+	if u != nil && path[:2] == "~/" {
+		path = strings.Replace(path, "~", u.HomeDir, 1)
 	}
 	return path
 }
