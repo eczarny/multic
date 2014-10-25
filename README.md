@@ -14,13 +14,13 @@ Assuming that [Go][1] has been installed the `multic` binary should reside under
 
 # Usage
 
-multic will run what ever command it is given in the configured group of directories, or Directory Groups.
+multic will run what ever command it is given in the configured group of directories, or directory groups.
 
-By default multic will look for a `config` file under the `~/.multic/` directory. The path to an alternative configuration file can be provided by specifying the `--configuration` or `-c` option.
+By default multic will look for a `config` file under the `~/.multic` directory. The path to an alternative configuration file can be provided by specifying the `--configuration` or `-c` option.
 
 Unless otherwise specified via the `--group` or `-g` option multic will use the _default_ directory group. Details on the configuration file format used by `multic` are provided in a subsequent section of the README file.
 
-Refer to multi's help for additional options.
+Refer to multic's help for additional options.
 
 ## Examples
 
