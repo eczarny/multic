@@ -4,13 +4,17 @@
 
 A utility that runs shell commands in multiple directories.
 
+## Installing from Homebrew
+
+multic is not yet distributed as a binary via [Homebrew][1]. Check back shortly!
+
 ## Installing from source
 
 To install multic from source:
 
 	$ go get github.com/eczarny/multic
 
-Assuming that [Go][1] has been installed the `multic` binary should reside under `$GOPATH/bin/multic`. Add this to the `$PATH`.
+Assuming that [Go][2] has been installed the `multic` binary should reside under `$GOPATH/bin/multic`. Add this to the `$PATH`.
 
 # Usage
 
@@ -51,6 +55,11 @@ Take the multic configuration used in the examples above. The `PROJECTS` directo
 
 If directory groups consisting of multiple directories are referenced by another directory group all are added to that directory group. The `default` directory group is an example of this; `$go_projects` references a directory group including both `$lexer` and `$multic`. Upon evaluation multic will use `~/Projects/Go/src/github.com/eczarny/lexer` and `~/Projects/Go/src/github.com/eczarny/multic` when running commands in the `default` directory group.
 
+To review the configured directory groups:
+
+	$ multic -l
+
 Specifying a `default` directory group is a good idea. If a default is not configured multic will require an explicit directory group every time it is used.
 
-[1]: http://golang.org/
+[1]: http://brew.sh/
+[2]: http://golang.org/
