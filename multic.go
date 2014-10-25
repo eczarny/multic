@@ -86,6 +86,18 @@ func runCommand(dir string, args cli.Args) {
 	}
 }
 
+func runCommandInDirectories(config *config.Config, directoryGroupName string, args cli.Args) {
+	g, err := config.GetDirectoryGroup(directoryGroupName)
+	if err == nil {
+		for _, d := range g {
+			runCommand(d, args)
+			printDirectorySeparator(d)
+		}
+	} else {
+		terminal.Stderr.Color("r").Print(err).Reset().Nl()
+	}
+}
+
 func main() {
 	app := cli.NewApp()
 	cli.AppHelpTemplate = appHelpTemplate
@@ -116,16 +128,7 @@ func main() {
 		} else if len(args) == 0 {
 			cli.ShowAppHelp(c)
 		} else {
-			n := c.String("group")
-			g, err := config.GetDirectoryGroup(n)
-			if err == nil {
-				for _, d := range g {
-					runCommand(d, args)
-					printDirectorySeparator(d)
-				}
-			} else {
-				terminal.Stderr.Color("r").Print(err).Reset().Nl()
-			}
+			runCommandInDirectories(config, c.String("group"), args)
 		}
 	}
 	app.Run(os.Args)
