@@ -4,10 +4,6 @@
 
 A utility that runs shell commands in multiple directories.
 
-## Installing from Homebrew
-
-multic is not yet distributed as a binary via [Homebrew][1]. Check back shortly!
-
 ## Installing from source
 
 To install multic from source:
