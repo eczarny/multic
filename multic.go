@@ -25,28 +25,28 @@ Options:
 `
 
 func printDirectoryGroups(config *config.Config) {
-	config.WalkDirectoryGroups(func(n string, g []string) {
-		printDirectoryGroup(n, g)
+	config.WalkDirectoryGroups(func(name string, dirs []string) {
+		printDirectoryGroup(name, dirs)
 	})
 }
 
-func printDirectoryGroup(directoryGroupName string, directoryGroup []string) {
-	o := terminal.Stdout
-	o.Colorf("@{.}Directory group: ").Reset()
-	o.Color(".y").Print(directoryGroupName).Reset().Nl()
-	for _, d := range directoryGroup {
-		o.Print(d).Nl()
+func printDirectoryGroup(name string, dirs []string) {
+	stdout := terminal.Stdout
+	stdout.Colorf("@{.}Directory group: ").Reset()
+	stdout.Color(".y").Print(name).Reset().Nl()
+	for _, dir := range dirs {
+		stdout.Print(dir).Nl()
 	}
 }
 
-func printDirectorySeparator(directory string) {
-	o := terminal.Stdout
+func printDirectorySeparator(dir string) {
+	stdout := terminal.Stdout
 	w, _, _ := terminalSize()
-	o.Color(".").Print("\u2514 ").Color(".g").Print(directory).Color(".").Print(" ")
-	for i := 1; i < w-len(directory)-2; i++ {
-		o.Print("\u2500")
+	stdout.Color(".").Print("\u2514 ").Color(".g").Print(dir).Color(".").Print(" ")
+	for i := 1; i < w-len(dir)-2; i++ {
+		stdout.Print("\u2500")
 	}
-	o.Reset().Nl()
+	stdout.Reset().Nl()
 }
 
 func terminalSize() (int, int, error) {
@@ -81,24 +81,26 @@ func main() {
 			Usage: "specify a configuration file",
 		},
 	}
-	app.Action = func(c *cli.Context) {
-		args := c.Args()
-		config := config.LoadConfig(c.String("configuration"))
-		if c.IsSet("list") {
+	app.Action = func(ctx *cli.Context) {
+		args := ctx.Args()
+		config := config.LoadConfig(ctx.String("configuration"))
+		if ctx.IsSet("list") {
 			printDirectoryGroups(config)
 		} else if len(args) == 0 {
-			cli.ShowAppHelp(c)
+			cli.ShowAppHelp(ctx)
 		} else {
-			dirs, err := config.GetDirectoryGroup(c.String("group"))
+			dirs, err := config.GetDirectoryGroup(ctx.String("group"))
+			stderr := terminal.Stderr
 			if err == nil {
-				Run(dirs, args.First(), args.Tail(), func(dir string, err error) {
+				for _, dir := range dirs {
+					err = Run(dir, args.First(), args.Tail())
 					if err != nil {
-						terminal.Stderr.Color("r").Print(err).Reset().Nl()
+						stderr.Color("r").Print(err).Reset().Nl()
 					}
 					printDirectorySeparator(dir)
-				})
+				}
 			} else {
-				terminal.Stderr.Color("r").Print(err).Reset().Nl()
+				stderr.Color("r").Print(err).Reset().Nl()
 			}
 		}
 	}
