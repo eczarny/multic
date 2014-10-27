@@ -59,6 +59,22 @@ func terminalSize() (int, int, error) {
 	return int(d[1]), int(d[0]), nil
 }
 
+func run(config *config.Config, name string, args cli.Args) {
+	dirs, err := config.GetDirectoryGroup(name)
+	stderr := terminal.Stderr
+	if err == nil {
+		for _, dir := range dirs {
+			err = Run(dir, args.First(), args.Tail())
+			if err != nil {
+				stderr.Color("r").Print(err).Reset().Nl()
+			}
+			printDirectorySeparator(dir)
+		}
+	} else {
+		stderr.Color("r").Print(err).Reset().Nl()
+	}
+}
+
 func main() {
 	app := cli.NewApp()
 	cli.AppHelpTemplate = appHelpTemplate
@@ -89,19 +105,7 @@ func main() {
 		} else if len(args) == 0 {
 			cli.ShowAppHelp(ctx)
 		} else {
-			dirs, err := config.GetDirectoryGroup(ctx.String("group"))
-			stderr := terminal.Stderr
-			if err == nil {
-				for _, dir := range dirs {
-					err = Run(dir, args.First(), args.Tail())
-					if err != nil {
-						stderr.Color("r").Print(err).Reset().Nl()
-					}
-					printDirectorySeparator(dir)
-				}
-			} else {
-				stderr.Color("r").Print(err).Reset().Nl()
-			}
+			run(config, ctx.String("group"), args)
 		}
 	}
 	app.Run(os.Args)
