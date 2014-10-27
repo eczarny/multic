@@ -89,7 +89,17 @@ func main() {
 		} else if len(args) == 0 {
 			cli.ShowAppHelp(c)
 		} else {
-			RunCommandInDirectories(config, c.String("group"), args)
+			dirs, err := config.GetDirectoryGroup(c.String("group"))
+			if err == nil {
+				Run(dirs, args.First(), args.Tail(), func(dir string, err error) {
+					if err != nil {
+						terminal.Stderr.Color("r").Print(err).Reset().Nl()
+					}
+					printDirectorySeparator(dir)
+				})
+			} else {
+				terminal.Stderr.Color("r").Print(err).Reset().Nl()
+			}
 		}
 	}
 	app.Run(os.Args)
