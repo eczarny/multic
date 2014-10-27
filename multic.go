@@ -1,9 +1,7 @@
 package main
 
 import (
-	"io"
 	"os"
-	"os/exec"
 	"syscall"
 	"unsafe"
 
@@ -41,16 +39,6 @@ func printDirectoryGroup(directoryGroupName string, directoryGroup []string) {
 	}
 }
 
-func terminalSize() (int, int, error) {
-	var d [4]uint16
-	_, _, err := syscall.Syscall6(syscall.SYS_IOCTL, uintptr(0),
-		uintptr(syscall.TIOCGWINSZ), uintptr(unsafe.Pointer(&d)), 0, 0, 0)
-	if err != 0 {
-		return -1, -1, err
-	}
-	return int(d[1]), int(d[0]), nil
-}
-
 func printDirectorySeparator(directory string) {
 	o := terminal.Stdout
 	w, _, _ := terminalSize()
@@ -61,41 +49,14 @@ func printDirectorySeparator(directory string) {
 	o.Reset().Nl()
 }
 
-func run(dir string, stdin io.Reader, stdout, stderr io.Writer, name string, args ...string) error {
-	cmd := exec.Command(name, args...)
-	cmd.Dir = dir
-	cmd.Stdin = stdin
-	cmd.Stdout = stdout
-	cmd.Stderr = stderr
-	return cmd.Run()
-}
-
-func directoryExists(path string) bool {
-	s, err := os.Stat(path)
-	return err == nil && s.IsDir()
-}
-
-func runCommand(dir string, args cli.Args) {
-	if directoryExists(dir) {
-		err := run(dir, os.Stdin, os.Stdout, os.Stderr, args.First(), args.Tail()...)
-		if err != nil {
-			terminal.Stderr.Color("r").Print(err).Reset().Nl()
-		}
-	} else {
-		terminal.Stderr.Colorf("@{r}The directory does not exist: ").Print(dir).Nl()
+func terminalSize() (int, int, error) {
+	var d [4]uint16
+	_, _, err := syscall.Syscall6(syscall.SYS_IOCTL, uintptr(0),
+		uintptr(syscall.TIOCGWINSZ), uintptr(unsafe.Pointer(&d)), 0, 0, 0)
+	if err != 0 {
+		return -1, -1, err
 	}
-}
-
-func runCommandInDirectories(config *config.Config, directoryGroupName string, args cli.Args) {
-	g, err := config.GetDirectoryGroup(directoryGroupName)
-	if err == nil {
-		for _, d := range g {
-			runCommand(d, args)
-			printDirectorySeparator(d)
-		}
-	} else {
-		terminal.Stderr.Color("r").Print(err).Reset().Nl()
-	}
+	return int(d[1]), int(d[0]), nil
 }
 
 func main() {
@@ -128,7 +89,7 @@ func main() {
 		} else if len(args) == 0 {
 			cli.ShowAppHelp(c)
 		} else {
-			runCommandInDirectories(config, c.String("group"), args)
+			RunCommandInDirectories(config, c.String("group"), args)
 		}
 	}
 	app.Run(os.Args)
