@@ -59,19 +59,24 @@ func terminalSize() (int, int, error) {
 	return int(d[1]), int(d[0]), nil
 }
 
-func run(config *config.Config, name string, args cli.Args) {
-	dirs, err := config.GetDirectoryGroup(name)
-	stderr := terminal.Stderr
-	if err == nil {
-		for _, dir := range dirs {
-			err = Run(dir, args.First(), args.Tail())
-			if err != nil {
-				stderr.Color("r").Print(err).Reset().Nl()
+func run(config *config.Config, groups []string, args cli.Args) {
+	if len(groups) == 0 {
+		groups = []string{"default"}
+	}
+	for _, group := range groups {
+		dirs, err := config.GetDirectoryGroup(group)
+		stderr := terminal.Stderr
+		if err == nil {
+			for _, dir := range dirs {
+				err = Run(dir, args.First(), args.Tail())
+				if err != nil {
+					stderr.Color("r").Print(err).Reset().Nl()
+				}
+				printDirectorySeparator(dir)
 			}
-			printDirectorySeparator(dir)
+		} else {
+			stderr.Color("r").Print(err).Reset().Nl()
 		}
-	} else {
-		stderr.Color("r").Print(err).Reset().Nl()
 	}
 }
 
@@ -86,9 +91,9 @@ func main() {
 			Name:  "list, l",
 			Usage: "list configured directory groups",
 		},
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name:  "group, g",
-			Value: "default",
+			Value: &cli.StringSlice{},
 			Usage: "specify a directory group",
 		},
 		cli.StringFlag{
@@ -105,7 +110,7 @@ func main() {
 		} else if len(args) == 0 {
 			cli.ShowAppHelp(ctx)
 		} else {
-			run(config, ctx.String("group"), args)
+			run(config, ctx.StringSlice("group"), args)
 		}
 	}
 	app.Run(os.Args)
