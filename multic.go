@@ -84,7 +84,7 @@ func main() {
 	app := cli.NewApp()
 	cli.AppHelpTemplate = appHelpTemplate
 	app.Name = "multic"
-	app.Version = "0.0.4"
+	app.Version = "0.0.5"
 	app.Usage = "Run shell commands in multiple directories."
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
